@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Émulateur Pseudo-Assembleur</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript" src="_build/default/main.bc.js"></script>
+    <style>
+        .registers-table th, .registers-table td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg w-full">
+        <div class="grid grid-cols-2 gap-4">
+            <div class="w-full">
+                <h2 class="text-lg font-semibold mb-2">Éditeur de programme</h2>
+                <textarea id="program-input" class="w-full h-80 border rounded p-2" placeholder="Écrivez votre programme ici"></textarea>
+                <button id="load-btn" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Load Program</button>
+            </div>
+
+            <div class="w-full">
+                <h2 class="text-lg font-semibold mb-2">Programme chargé</h2>
+                <div id="loaded-program" class="w-full h-80 border rounded p-2 bg-gray-50 overflow-auto" style="white-space: pre-line">Aucun programme chargé</div>
+                <div class="mt-4 flex space-x-4">
+                    <button id="run-btn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Run</button>
+                    <button id="next-btn" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Next</button>
+                    <button id="reset-btn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="error-message" class="bg-red-500 text-white p-3 rounded text-center mt-4 hidden"></div>
+        
+        <div class="mt-6">
+            <h2 class="text-lg font-semibold mb-2">État des registres</h2>
+            <div id="registers" class="w-full border rounded p-4 bg-gray-50"></div>
+        </div>
+        
+        <div class="mt-6">
+            <h2 class="text-lg font-semibold mb-2">Affichage</h2>
+            <div id="output" class="w-full h-40 border rounded p-4 bg-gray-50 overflow-auto" style="white-space: pre-line"></div>
+        </div>
+    </div>
+</body>
+<footer class="w-full bg-gray-800 text-white text-center py-4 mt-6 fixed bottom-0 left-0">
+    <p>Page created with <a href="https://ocsigen.org/js_of_ocaml/latest/manual/overview" class="text-orange-300 hover:underline" target="_blank">Js_of_ocaml</a>.
+    The <a href="https://github.com/jledent/pseudo-asm-ci2" class="text-orange-300 hover:underline" target="_blank">source code</a> is available on GitHub.
+    </p>
+</footer>
+</html>
+

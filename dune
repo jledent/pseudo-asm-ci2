@@ -1,0 +1,5 @@
+(executable (name main)
+  (libraries pseudoasm)
+  (modes byte js)
+  (preprocess
+  (pps js_of_ocaml-ppx)))
