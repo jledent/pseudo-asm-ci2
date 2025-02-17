@@ -17,8 +17,8 @@ program:
     | is=list(line) EOF { is }
 
 line:
-    | l=LINENBR PRINT LPAREN ops=separated_list(PLUS, str_operand) RPAREN { (l, Print, ops) }
-    | l=LINENBR opc=opcode ops=separated_list(COMMA, operand) { (l, opc, ops) }
+    | l=LINENBR PRINT LPAREN ops=separated_list(PLUS, str_operand) RPAREN { (l, (Print, ops)) }
+    | l=LINENBR opc=opcode ops=separated_list(COMMA, operand) { (l, (opc, ops)) }
 
 opcode:
     | MOVE { Move }

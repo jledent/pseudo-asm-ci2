@@ -23,7 +23,7 @@ let dummy_state = {
 
 let initialize (prog : Asm.prog) =
   let instr_map =
-    List.fold_left (fun m (l, op, args) ->
+    List.fold_left (fun m (l, (op, args)) ->
       if InstrMap.mem l m then
         raise (ParseError (Printf.sprintf "Duplicate line number: %d" l))
       else
@@ -70,7 +70,7 @@ let validate_instr line (op, args) = match op with
   | _ -> raise (Error ("Unsupported instruction", line))
 
 let validate_prog prog =
-  List.iter (fun (l, op, args) -> validate_instr l (op, args)) prog
+  List.iter (fun (l, (op, args)) -> validate_instr l (op, args)) prog
 
 let eval_operand (s : state) = function
   | Imm i -> i
@@ -178,7 +178,7 @@ let run s =
 
 type load_result =
 | ParseError of string
-| Ok of prog * state
+| Ok of state
 
 let load_the_code (code : string) = 
   let lexbuf = Lexing.from_string code in
@@ -186,7 +186,7 @@ let load_the_code (code : string) =
     let prog = Parser.program Lexer.token lexbuf in
     validate_prog prog;
     let state = initialize prog in
-    Ok (prog, state)
+    Ok (state)
   with
   | ParseError (msg) -> ParseError (msg)
   | Error (msg, line) ->

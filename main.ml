@@ -9,7 +9,7 @@ let hide error_message =
   error_message##.textContent := Js.null;
   error_message##.classList##add (Js.string "hidden")
 
-let display error_message msg =
+let display_error error_message msg =
   error_message##.textContent := Js.some (Js.string msg);
   error_message##.classList##remove (Js.string "hidden")
 
@@ -17,11 +17,11 @@ let load_program input loaded_program error_message =
   let input_content = Js.to_string input##.value in
   match load_the_code input_content with
   | ParseError msg -> 
-    display error_message msg;
-    loaded_program##.textContent := Js.null
-  | Ok (prog, st) -> 
+    display_error error_message msg;
+    loaded_program##.textContent := Js.null;
+    state := dummy_state
+  | Ok (st) -> 
     hide error_message;
-    loaded_program##.textContent := Js.some (Js.string (Asm.string_of_prog prog));
     state := st
 
 let run_program error_message =
@@ -30,9 +30,9 @@ let run_program error_message =
   with
   | Error (msg, line) ->
     let msg = Printf.sprintf "Error at line %d: %s" line msg in
-    display error_message msg
+    display_error error_message msg
   | _ ->
-    display error_message "Unknown error"
+    display_error error_message "Unknown error"
 
 let next_instruction error_message =
   try
@@ -41,9 +41,41 @@ let next_instruction error_message =
   | Exit -> ()
   | Error (msg, line) ->
     let msg = Printf.sprintf "Error at line %d: %s" line msg in
-    display error_message msg
+    display_error error_message msg
   | _ ->
-    display error_message "Unknown error"
+    display_error error_message "Unknown error"
+
+let display_registers doc registers =
+  registers##.innerHTML := Js.string "";
+  let table = Html.createTable doc in
+  table##.className := Js.string "registers-table w-full border-collapse";
+  let row1 = Html.createTr doc in
+  let row2 = Html.createTr doc in
+  List.iter (fun reg ->
+    let reg_value = Hashtbl.find !state.reg_table reg in
+    let cell1 = Html.createTh doc in
+    let cell2 = Html.createTd doc in
+    cell1##.textContent := Js.some (Js.string (Asm.string_of_reg reg));
+    cell2##.textContent := Js.some (Js.string (Int64.to_string reg_value));
+    Dom.appendChild row1 cell1;
+    Dom.appendChild row2 cell2
+  ) [R0; R1; R2; R3; R4; R5; R6; R7; PC; SP; BP];
+  Dom.appendChild table row1;
+  Dom.appendChild table row2;
+  Dom.appendChild registers table
+
+let display_loaded_program doc loaded_program =
+  let current_line = Int64.to_int (Hashtbl.find !state.reg_table PC) in
+  loaded_program##.textContent := Js.null;
+  InstrMap.iter (fun line instr ->
+    let str = Asm.string_of_ins (line, instr) in
+    let div = Html.createDiv doc in
+    if line = current_line then
+      div##.classList##add (Js.string "bg-blue-200");
+    div##.classList##add (Js.string "px-2");
+    div##.textContent := Js.some (Js.string str);
+    Dom.appendChild loaded_program div
+  ) !state.instr_map
 
 let onload _ =
   let doc = Html.document in
@@ -75,23 +107,8 @@ let onload _ =
     Js.coerce_opt (doc##getElementById (Js.string "output")) Html.CoerceTo.div (fun _ -> assert false)
   in
   let show_state () =
-    registers##.innerHTML := Js.string "";
-    let table = Html.createTable doc in
-    table##.className := Js.string "registers-table w-full border-collapse";
-    let row1 = Html.createTr doc in
-    let row2 = Html.createTr doc in
-    List.iter (fun reg ->
-      let reg_value = Hashtbl.find !state.reg_table reg in
-      let cell1 = Html.createTh doc in
-      let cell2 = Html.createTd doc in
-      cell1##.textContent := Js.some (Js.string (Asm.string_of_reg reg));
-      cell2##.textContent := Js.some (Js.string (Int64.to_string reg_value));
-      Dom.appendChild row1 cell1;
-      Dom.appendChild row2 cell2
-    ) [R0; R1; R2; R3; R4; R5; R6; R7; PC; SP; BP];
-    Dom.appendChild table row1;
-    Dom.appendChild table row2;
-    Dom.appendChild registers table;
+    display_registers doc registers;
+    display_loaded_program doc loaded_program;
     output##.textContent := Js.some (Js.string !state.output);
   in
   load_button##.onclick := Html.handler (fun _ ->

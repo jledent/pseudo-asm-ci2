@@ -22,8 +22,7 @@ type opcode =
 
 type linenumber = int
 type instr = opcode * operand list
-type line = linenumber * opcode * operand list
-type prog = line list
+type prog = (linenumber * instr) list
 
 (* Pretty printing ----------------------------------------------------------- *)
 
@@ -46,7 +45,7 @@ let string_of_opcode = function
   | Call -> "call" | Ret -> "ret"
   | Halt -> "halt" | Print -> "print" | Malloc -> "malloc"
 
-let string_of_ins (l, opc, ops) = match opc with
+let string_of_ins (l, (opc, ops)) = match opc with
   | Print -> Printf.sprintf "%d: %s (%s)" l (string_of_opcode opc) (String.concat " + " (List.map string_of_operand ops))
   | _ -> Printf.sprintf "%d: %s %s" l (string_of_opcode opc) (String.concat ", " (List.map string_of_operand ops))
 
