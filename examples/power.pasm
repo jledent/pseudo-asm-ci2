@@ -5,5 +5,5 @@
   4: mul R2, R2, R0    //    R2 = R2 * R0
   5: sub R1, R1, 1     //    R1--
   6: jump 3            // Revenir au debut de la boucle
-  7: print ("3 puissance 7 = " + R2)  // Resultat : 2187
+  7: println ("3 puissance 7 = " + R2)  // Resultat : 2187
   8: halt

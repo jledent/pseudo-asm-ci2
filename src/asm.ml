@@ -10,6 +10,9 @@ let reg_of_int = function
 type operand =
 | Imm of int64
 | Reg of reg
+| Ind of reg
+| IndImm of reg * int64
+| IndReg of reg * reg
 | Str of string (* For the Print instruction *)
 
 type opcode = 
@@ -18,7 +21,7 @@ type opcode =
 | Jump | Jump_eq | Jump_neq | Jump_l | Jump_le | Jump_g | Jump_ge
 | Push | Pop
 | Call | Ret
-| Halt | Print | Malloc
+| Print | Println | Malloc | Halt 
 
 type linenumber = int
 type instr = opcode * operand list
@@ -34,6 +37,9 @@ let string_of_reg = function
 let string_of_operand = function
   | Imm i -> Int64.to_string i
   | Reg r -> string_of_reg r
+  | Ind r -> "[" ^ string_of_reg r ^ "]"
+  | IndImm (r, i) -> "[" ^ string_of_reg r ^ " + " ^ Int64.to_string i ^ "]"
+  | IndReg (r1, r2) -> "[" ^ string_of_reg r1 ^ " + " ^ string_of_reg r2 ^ "]"
   | Str s -> "\"" ^ s ^ "\""
 
 let string_of_opcode = function
@@ -43,7 +49,7 @@ let string_of_opcode = function
   | Jump_l -> "jump_l" | Jump_le -> "jump_le" | Jump_g -> "jump_g" | Jump_ge -> "jump_ge"
   | Push -> "push" | Pop -> "pop"
   | Call -> "call" | Ret -> "ret"
-  | Halt -> "halt" | Print -> "print" | Malloc -> "malloc"
+ | Print -> "print" | Println -> "println" | Malloc -> "malloc" | Halt -> "halt"
 
 let string_of_ins (l, (opc, ops)) = match opc with
   | Print -> Printf.sprintf "%d: %s (%s)" l (string_of_opcode opc) (String.concat " + " (List.map string_of_operand ops))

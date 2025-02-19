@@ -5,7 +5,7 @@
  8: add R1, R1, 1      // Sinon : on incremente R1
 10: mul R3, R1, R1     // R3 = R1 * R1
 12: jump_le R3, R0, 4  // Si R1 <= sqrt(R0), on recommence
-14: print ("Premier")
+14: println ("Premier")
 16: halt
-18: print ("Pas premier")
+18: println ("Pas premier")
 20: halt

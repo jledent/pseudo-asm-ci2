@@ -26,6 +26,8 @@ rule token = parse
         then raise (ParseError ("Invalid register: " ^ r))
         else REG (reg_of_int k)
       }
+    | "SP" { REG SP }
+    | "BP" { REG BP }
     | string as s { STRING (String.sub s 1 (String.length s - 2)) }
     | "move" { MOVE }
     | "add" { ADD }
@@ -40,11 +42,17 @@ rule token = parse
     | "jump_le" { JUMP_LE }
     | "jump_g" { JUMP_G }
     | "jump_ge" { JUMP_GE }
+    | "push" { PUSH }
+    | "pop" { POP }
     | "print" { PRINT }
+    | "println" { PRINTLN }
+    | "malloc" { MALLOC }
     | "halt" { HALT }
     | ',' { COMMA }
     | '(' { LPAREN }
     | ')' { RPAREN }
+    | '[' { LBRACKET }
+    | ']' { RBRACKET }
     | '+' { PLUS }
     | eof { EOF }
     | _ as c { raise (ParseError (Printf.sprintf "Unexpected character : %c" c)) }

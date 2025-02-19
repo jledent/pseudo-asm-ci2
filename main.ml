@@ -78,6 +78,7 @@ let display_loaded_program doc loaded_program =
   ) !state.instr_map
 
 let onload _ =
+  Random.self_init ();
   let doc = Html.document in
   let input =
     Js.coerce_opt (doc##getElementById (Js.string "program-input")) Html.CoerceTo.textarea (fun _ -> assert false)

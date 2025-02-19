@@ -7,5 +7,5 @@
  6: add R2, R2, 2     //   compteur += 2
  7: add R1, R1, 1     //   resultat++
  8: jump 4            // Fin tant que
- 9: print ("sqrt(" + R0 + ") = " + R1)
+ 9: println ("sqrt(" + R0 + ") = " + R1)
 10: halt

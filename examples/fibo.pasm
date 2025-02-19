@@ -8,5 +8,5 @@
   7: move R2, R4        //
   8: add R3, R3, 1      // Decremente le nombre d'etapes restantes
   9: jump 4             // Iteration suivante
- 10: print ("Fibonacci(" + R0 + ") = " + R2)
+ 10: println ("Fibonacci(" + R0 + ") = " + R2)
  11: halt
