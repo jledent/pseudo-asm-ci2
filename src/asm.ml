@@ -40,8 +40,8 @@ let string_of_operand = function
   | Ind r -> "[" ^ string_of_reg r ^ "]"
   | IndImm (r, i) ->
     if i < 0L
-    then "[" ^ string_of_reg r ^ " - " ^ Int64.to_string (Int64.neg i) ^ "]"
-    else "[" ^ string_of_reg r ^ " + " ^ Int64.to_string i ^ "]"
+    then "[" ^ string_of_reg r ^ "-" ^ Int64.to_string (Int64.neg i) ^ "]"
+    else "[" ^ string_of_reg r ^ "+" ^ Int64.to_string i ^ "]"
   | IndReg (r1, r2) -> "[" ^ string_of_reg r1 ^ " + " ^ string_of_reg r2 ^ "]"
   | Str s -> "\"" ^ s ^ "\""
 

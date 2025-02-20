@@ -56,7 +56,7 @@ let display_registers doc registers =
     let cell1 = Html.createTh doc in
     let cell2 = Html.createTd doc in
     cell1##.textContent := Js.some (Js.string (Asm.string_of_reg reg));
-    cell2##.textContent := Js.some (Js.string (Int64.to_string reg_value));
+    cell2##.textContent := Js.some (Js.string (string_of_value reg_value));
     Dom.appendChild row1 cell1;
     Dom.appendChild row2 cell2
   ) [R0; R1; R2; R3; R4; R5; R6; R7; PC; SP; BP];
@@ -65,7 +65,7 @@ let display_registers doc registers =
   Dom.appendChild registers table
 
 let display_loaded_program doc loaded_program =
-  let current_line = Int64.to_int (Hashtbl.find !state.reg_table PC) in
+  let current_line = int_of_value (Hashtbl.find !state.reg_table PC) in
   loaded_program##.textContent := Js.null;
   InstrMap.iter (fun line instr ->
     let str = Asm.string_of_ins (line, instr) in
