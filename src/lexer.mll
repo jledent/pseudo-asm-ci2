@@ -8,7 +8,7 @@
 let digit = ['0'-'9']
 let letter = ['a'-'z' 'A'-'Z']
 let register = 'R' digit
-let number = ('-')?digit+
+let number = digit+
 let string = '"' [^ '"']* '"'
 let comment = "//" [^ '\n']*
 let spaces = [' ' '\t']
@@ -16,10 +16,11 @@ let spaces = [' ' '\t']
 rule token = parse
     | [' ' '\t' '\r' '\n'] { token lexbuf }
     | comment { token lexbuf }
-    | (number as n) spaces* ':' { LINENBR (int_of_string n) }
+    | (('-')?number as n) spaces* ':' { LINENBR (int_of_string n) }
     | number as n { match Int64.of_string_opt n with
                        | Some j -> INT64 j
                        | None -> raise (ParseError ("Invalid number: " ^ n)) }
+    | string as s { STRING (String.sub s 1 (String.length s - 2)) }
     | register as r {
         let k = int_of_char r.[1] in
         if k < 0 || k > 7
@@ -28,7 +29,6 @@ rule token = parse
       }
     | "SP" { REG SP }
     | "BP" { REG BP }
-    | string as s { STRING (String.sub s 1 (String.length s - 2)) }
     | "move" { MOVE }
     | "add" { ADD }
     | "sub" { SUB }
@@ -44,6 +44,8 @@ rule token = parse
     | "jump_ge" { JUMP_GE }
     | "push" { PUSH }
     | "pop" { POP }
+    | "call" { CALL }
+    | "ret" { RET }
     | "print" { PRINT }
     | "println" { PRINTLN }
     | "malloc" { MALLOC }
@@ -54,5 +56,6 @@ rule token = parse
     | '[' { LBRACKET }
     | ']' { RBRACKET }
     | '+' { PLUS }
+    | '-' { MINUS }
     | eof { EOF }
     | _ as c { raise (ParseError (Printf.sprintf "Unexpected character : %c" c)) }

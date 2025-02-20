@@ -21,6 +21,8 @@ type state = {
   mutable memory : memory_block BlockMap.t;
   mutable output : string;
   mutable jmp_flag : bool;
+  (* Secretly stores the old BP when a Call instruction is used *)
+  bp_stack : int64 Stack.t;
 }
 
 let dummy_state = {
@@ -29,6 +31,7 @@ let dummy_state = {
   memory = BlockMap.empty;
   output = "";
   jmp_flag = false;
+  bp_stack = Stack.create ();
 }
 
 let initialize (prog : Asm.prog) =
@@ -44,11 +47,13 @@ let initialize (prog : Asm.prog) =
   in
   let reg_table = Hashtbl.create 11 in
   List.iter (fun r -> Hashtbl.add reg_table r 0L)
-    [ R0; R1; R2; R3; R4; R5; R6; R7; PC; SP; BP ];
+    [ R0; R1; R2; R3; R4; R5; R6; R7; PC; SP ];
+  Hashtbl.add reg_table BP (-1L);
   let stack = Array.make stack_size 0L in
   let block = { start_address = 0; size = stack_size; data = stack } in
   let memory = BlockMap.singleton 0 block in
-  { instr_map; reg_table; memory; output=""; jmp_flag=false }
+  let bp_stack = Stack.create () in
+  { instr_map; reg_table; memory; output=""; jmp_flag=false; bp_stack}
 
 let reset (s : state) =
   Hashtbl.iter (fun r _ -> Hashtbl.replace s.reg_table r 0L) s.reg_table;
@@ -56,7 +61,8 @@ let reset (s : state) =
   let block = { start_address = 0; size = stack_size; data = stack } in
   s.memory <- BlockMap.singleton 0 block;
   s.output <- "";
-  s.jmp_flag <- false
+  s.jmp_flag <- false;
+  Stack.clear s.bp_stack
 
 let read_memory memory addr line =
   let result = ref None in
@@ -133,7 +139,7 @@ let validate_instr line (op, args) = match op with
     | [ _; _; _ ] -> ()
     | _ -> raise (Error (string_of_opcode op ^ " must have three arguments", line))
   )
-  | Jump | Push -> (
+  | Jump | Push | Call -> (
     match args with
     | [ _ ] -> ()
     | _ -> raise (Error (string_of_opcode op ^ " must have one argument", line))
@@ -142,7 +148,7 @@ let validate_instr line (op, args) = match op with
     match args with
     | [ _; _; _ ] -> ()
     | _ -> raise (Error (string_of_opcode op ^ " must have three arguments", line))
-  )
+  ) 
   | Pop -> (
     match args with
     | [ Imm _ ] -> raise (Error ("The destination of pop must be a register or a memory address", line))
@@ -155,8 +161,12 @@ let validate_instr line (op, args) = match op with
     | [ _; _ ] -> ()
     | _ -> raise (Error ("malloc must have two arguments", line))
   )
-  | Print | Println | Halt -> ()
-  | _ -> raise (Error ("Unsupported instruction", line))
+  | Halt | Ret -> (
+    match args with
+    | [] -> ()
+    | _ -> raise (Error (string_of_opcode op ^ " must have no arguments", line))
+  )
+  | Print | Println -> ()
 
 let validate_prog prog =
   List.iter (fun (l, (op, args)) -> validate_instr l (op, args)) prog
@@ -186,7 +196,11 @@ let eval_operand s op line =
     read_memory s.memory addr line
   | Str _ -> raise (Error ("String operands are not supported", line))
 
-let eval_instr (s : state) (line : int) (op, args) =
+(* Evaluate an instruction by modifying the state.
+ * The [line] argument is only used for error messages.
+ * eval_instr is recursive to allow Call and Ret to directly use Push / Jump / Pop
+ *)
+let rec eval_instr (s : state) (line : int) (op, args) =
   match op with
   | Move -> (
     match args with
@@ -272,6 +286,19 @@ let eval_instr (s : state) (line : int) (op, args) =
       store_at s dest v line
     | _ -> assert false
   )
+  | Call -> (
+    let sp = Hashtbl.find s.reg_table SP in
+    let bp = Hashtbl.find s.reg_table BP in
+    Stack.push bp s.bp_stack;
+    Hashtbl.replace s.reg_table BP sp;
+    eval_instr s line (Push, [ Reg PC ]);
+    eval_instr s line (Jump, args)
+  )
+  | Ret -> (
+    eval_instr s line (Pop, [ Reg PC ]);
+    let bp = Stack.pop s.bp_stack in
+    Hashtbl.replace s.reg_table BP bp
+  )
   | Malloc -> (
     match args with
     | [ dest; arg ] ->
@@ -301,7 +328,6 @@ let eval_instr (s : state) (line : int) (op, args) =
     | _ -> assert false
   )
   | Halt -> raise Exit
-  | _ -> raise (Error ("Unsupported instruction", line))
 
 let one_step (s : state) =
   let line64 = Hashtbl.find s.reg_table PC in
@@ -311,6 +337,8 @@ let one_step (s : state) =
       eval_instr s line instr;
       if not s.jmp_flag then
         begin
+          let line64 = Hashtbl.find s.reg_table PC in
+          let line = Int64.to_int line64 in        
           match InstrMap.find_first_opt (fun l -> l > line) s.instr_map with
           | Some (next_line, _) -> Hashtbl.replace s.reg_table PC (Int64.of_int next_line)
           | None -> raise (Error ("Reached the end of the program without halting", line + 1))

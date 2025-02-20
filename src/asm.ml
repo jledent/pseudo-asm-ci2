@@ -38,7 +38,10 @@ let string_of_operand = function
   | Imm i -> Int64.to_string i
   | Reg r -> string_of_reg r
   | Ind r -> "[" ^ string_of_reg r ^ "]"
-  | IndImm (r, i) -> "[" ^ string_of_reg r ^ " + " ^ Int64.to_string i ^ "]"
+  | IndImm (r, i) ->
+    if i < 0L
+    then "[" ^ string_of_reg r ^ " - " ^ Int64.to_string (Int64.neg i) ^ "]"
+    else "[" ^ string_of_reg r ^ " + " ^ Int64.to_string i ^ "]"
   | IndReg (r1, r2) -> "[" ^ string_of_reg r1 ^ " + " ^ string_of_reg r2 ^ "]"
   | Str s -> "\"" ^ s ^ "\""
 
@@ -49,10 +52,10 @@ let string_of_opcode = function
   | Jump_l -> "jump_l" | Jump_le -> "jump_le" | Jump_g -> "jump_g" | Jump_ge -> "jump_ge"
   | Push -> "push" | Pop -> "pop"
   | Call -> "call" | Ret -> "ret"
- | Print -> "print" | Println -> "println" | Malloc -> "malloc" | Halt -> "halt"
+  | Print -> "print" | Println -> "println" | Malloc -> "malloc" | Halt -> "halt"
 
 let string_of_ins (l, (opc, ops)) = match opc with
-  | Print -> Printf.sprintf "%d: %s (%s)" l (string_of_opcode opc) (String.concat " + " (List.map string_of_operand ops))
+  | Print | Println -> Printf.sprintf "%d: %s (%s)" l (string_of_opcode opc) (String.concat " + " (List.map string_of_operand ops))
   | _ -> Printf.sprintf "%d: %s %s" l (string_of_opcode opc) (String.concat ", " (List.map string_of_operand ops))
 
 let string_of_prog p =
