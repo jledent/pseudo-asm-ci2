@@ -7,14 +7,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="text/javascript" src="main.bc.js"></script>
     <style>
-        .registers-table th, .registers-table td {
+        table th, table td {
             border: 1px solid black;
             padding: 8px;
             text-align: center;
         }
+        table th {
+            background-color: #e5e7eb;
+        }
     </style>
 </head>
-<body class="bg-gray-100 p-6">
+<body class="pb-20 bg-gray-100 p-6">
     <div class="max-w-6xl mx-auto bg-white p-6 rounded-lg shadow-lg w-full">
         <div class="grid grid-cols-2 gap-4">
             <div class="w-full">
@@ -40,13 +43,30 @@
             <h2 class="text-lg font-semibold mb-2">État des registres</h2>
             <div id="registers" class="w-full border rounded p-4 bg-gray-50"></div>
         </div>
-        
-        <div class="mt-6">
-            <h2 class="text-lg font-semibold mb-2">Affichage</h2>
-            <div id="output" class="w-full h-40 border rounded p-4 bg-gray-50 overflow-auto" style="white-space: pre-line"></div>
+
+        <div class="mt-6 grid grid-cols-3 gap-4">
+            <div>
+                <h2 class="text-lg font-semibold mb-2">Pile</h2>
+                <div class="h-80 border rounded p-2 bg-gray-50 flex items-center justify-center">
+                    <div id="stack" class="h-60 w-40 border-4 border-gray-700 border-t-0 bg-gray-50 overflow-auto flex flex-col-reverse items-center p-2">
+                   </div>
+                </div>
+            </div>
+            
+            <div>
+                <h2 class="text-lg font-semibold mb-2">Tas</h2>
+                <div id="heap" class="h-80 border rounded p-2 bg-gray-50 overflow-auto">
+                </div>
+            </div>
+
+            <div>
+                <h2 class="text-lg font-semibold mb-2">Affichage</h2>
+                <div id="output" class="h-80 border rounded p-2 bg-gray-50 overflow-auto" style="white-space: pre-line"></div>
+            </div>
         </div>
+
     </div>
-    <footer class="w-full bg-gray-800 text-white text-center py-4 mt-6 fixed bottom-0 left-0">
+    <footer class="mt-6 w-full bg-gray-800 text-white text-center py-2 fixed bottom-0 left-0">
         <p>Created using <a href="https://ocsigen.org/js_of_ocaml/latest/manual/overview" class="text-orange-300 hover:underline" target="_blank">Js_of_ocaml</a>.
         The <a href="https://github.com/jledent/pseudo-asm-ci2" class="text-orange-300 hover:underline" target="_blank">source code</a> is available on GitHub.
         </p>

@@ -48,7 +48,7 @@ let next_instruction error_message =
 let display_registers doc registers =
   registers##.innerHTML := Js.string "";
   let table = Html.createTable doc in
-  table##.className := Js.string "registers-table w-full border-collapse";
+  table##.className := Js.string "w-full border-collapse";
   let row1 = Html.createTr doc in
   let row2 = Html.createTr doc in
   List.iter (fun reg ->
@@ -77,6 +77,59 @@ let display_loaded_program doc loaded_program =
     Dom.appendChild loaded_program div
   ) !state.instr_map
 
+let display_stack doc stack =
+  stack##.innerHTML := Js.string "";
+  let stack_block = BlockMap.find 0 !state.memory in
+  let sp = int_of_value (Hashtbl.find !state.reg_table SP) in
+  let bp = int_of_value (Hashtbl.find !state.reg_table BP) in
+  for i = 0 to sp - 1 do
+    let element = Html.createDiv doc in
+    element##.className := Js.string "w-full h-6 text-white font-bold flex items-center justify-center my-0.5 rounded flex-shrink-0";
+    element##.textContent := Js.some (Js.string (string_of_value stack_block.data.(i)));
+    if i = bp
+    then element##.classList##add (Js.string "bg-orange-500")
+    else element##.classList##add (Js.string "bg-blue-600");
+    Dom.appendChild stack element
+  done;
+  stack##.scrollTop := -stack##.scrollHeight
+
+let display_heap doc heap =
+  let ellipsis () =
+    let ellipsis = Html.createTr doc in
+    let cell = Html.createTd doc in
+    cell##.colSpan := 2;
+    cell##.textContent := Js.some (Js.string "⋮");
+    Dom.appendChild ellipsis cell;
+    ellipsis
+  in
+  heap##.innerHTML := Js.string "";
+  let table = Html.createTable doc in
+  table##.className := Js.string "w-full border-collapse";
+  let hrow = Html.createTr doc in
+  let h1 = Html.createTh doc in
+  h1##.textContent := Js.some (Js.string "Addresses");
+  let h2 = Html.createTh doc in
+  h2##.textContent := Js.some (Js.string "Valeurs");
+  Dom.appendChild hrow h1;
+  Dom.appendChild hrow h2;
+  Dom.appendChild table hrow;
+  BlockMap.iter (fun addr block ->
+    if addr = 0 then ()
+    else
+      for i = 0 to block.size - 1 do
+        let row = Html.createTr doc in
+        let cell1 = Html.createTd doc in
+        cell1##.textContent := Js.some (Js.string (Printf.sprintf "@%08x" (addr + i)));
+        let cell2 = Html.createTd doc in
+        cell2##.textContent := Js.some (Js.string (string_of_value block.data.(i)));
+        Dom.appendChild row cell1;
+        Dom.appendChild row cell2;
+        Dom.appendChild table row;
+      done;
+    Dom.appendChild table (ellipsis ())
+  ) !state.memory;
+  Dom.appendChild heap table
+
 let onload _ =
   Random.self_init ();
   let doc = Html.document in
@@ -104,12 +157,20 @@ let onload _ =
   let registers =
     Js.coerce_opt (doc##getElementById (Js.string "registers")) Html.CoerceTo.div (fun _ -> assert false)
   in
+  let stack =
+    Js.coerce_opt (doc##getElementById (Js.string "stack")) Html.CoerceTo.div (fun _ -> assert false)
+  in
+  let heap =
+    Js.coerce_opt (doc##getElementById (Js.string "heap")) Html.CoerceTo.div (fun _ -> assert false)
+  in
   let output =
     Js.coerce_opt (doc##getElementById (Js.string "output")) Html.CoerceTo.div (fun _ -> assert false)
   in
   let show_state () =
     display_registers doc registers;
     display_loaded_program doc loaded_program;
+    display_stack doc stack;
+    display_heap doc heap;
     output##.textContent := Js.some (Js.string !state.output);
   in
   load_button##.onclick := Html.handler (fun _ ->

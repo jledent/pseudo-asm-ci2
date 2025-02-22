@@ -26,7 +26,6 @@ let int_of_value = function
 | Val i -> Int64.to_int i
 | Addr i -> Int64.to_int i
 
-(* Operations on values, which can be either integers or addresses. *)
 let operate op v1 v2 = match (v1, v2) with
 | Val x, Val y -> Val (op x y)
 | (Addr x | Val x), (Addr y | Val y) -> Addr (op x y)
@@ -43,10 +42,15 @@ type memory_block = {
 }
 
 type state = {
+  (* Loaded program: assigns instructions to line numbers *)
   instr_map : instr InstrMap.t;
+  (* Register table *)
   reg_table : (reg, value) Hashtbl.t;
+  (* Allocated blocks of memory ; also contains the stack at address 0 *)
   mutable memory : memory_block BlockMap.t;
+  (* stdout *)
   mutable output : string;
+  (* Jump flag set to true when a jump is performed, to avoid incrementing PC *)
   mutable jmp_flag : bool;
   (* Secretly stores the old BP when a Call instruction is used *)
   bp_stack : value Stack.t;
@@ -84,6 +88,7 @@ let initialize (prog : Asm.prog) =
 
 let reset (s : state) =
   Hashtbl.iter (fun r _ -> Hashtbl.replace s.reg_table r (Val 0L)) s.reg_table;
+  Hashtbl.replace s.reg_table BP (Val (-1L));
   let stack = Array.make stack_size (Val 0L) in
   let block = { start_address = 0; size = stack_size; data = stack } in
   s.memory <- BlockMap.singleton 0 block;
@@ -100,7 +105,7 @@ let read_memory memory addr line =
   ) memory;
   match !result with
   | Some v -> v
-  | None -> let msg = Printf.sprintf "Segmentation fault! The memory address %d is invalid, or was not allocated" addr in
+  | None -> let msg = Printf.sprintf "Segmentation fault! The memory address @%08x is invalid, or was not allocated" addr in
     raise (Error (msg, line))
 
 let write_memory memory addr value line =
@@ -111,7 +116,7 @@ let write_memory memory addr value line =
         block.data.(offset) <- value;
         raise Exit;
     ) memory;
-    let msg = Printf.sprintf "Segmentation fault! The memory address %d is invalid, or was not allocated" addr in
+    let msg = Printf.sprintf "Segmentation fault! The memory address @%08x is invalid, or was not allocated" addr in
     raise (Error (msg, line))
   with Exit -> ()
 
@@ -364,6 +369,7 @@ let one_step (s : state) =
       eval_instr s line instr;
       if not s.jmp_flag then
         begin
+          (* Need to recompute the current line because of Ret *)
           let line64 = Hashtbl.find s.reg_table PC in
           let line = int_of_value line64 in        
           match InstrMap.find_first_opt (fun l -> l > line) s.instr_map with
