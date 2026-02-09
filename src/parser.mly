@@ -18,6 +18,7 @@ program:
 
 line:
     | l=LINENBR opc=print_opcode LPAREN ops=separated_list(PLUS, str_operand) RPAREN { (l, (opc, ops)) }
+    | l=LINENBR opc=print_opcode op=str_operand { (l, (opc, [op])) }
     | l=LINENBR opc=opcode ops=separated_list(COMMA, operand) { (l, (opc, ops)) }
 
 print_opcode:
