@@ -183,9 +183,8 @@ let validate_instr line (op, args) = match op with
   ) 
   | Pop -> (
     match args with
-    | [ Imm _ ] -> raise (Error ("The destination of pop must be a register or a memory address", line))
-    | [ _ ] -> ()
-    | _ -> raise (Error ("pop must have one argument", line))
+    | [] | [ _ ] -> ()
+    | _ -> raise (Error ("pop must have zero or one argument", line))
   )
   | Malloc -> (
     match args with
@@ -308,14 +307,14 @@ let rec eval_instr (s : state) (line : int) (op, args) =
   )
   | Pop -> (
     match args with
-    | [ dest ] ->
+    | [] -> eval_instr s line (Pop, [Imm 1L])
+    | [ arg1 ] ->
+      let v = eval_operand s arg1 line in
       let sp = Hashtbl.find s.reg_table SP in
-      if int_of_value sp <= 0 then
+      if int_of_value sp <= int_of_value v then (* Stack starts at address 1 *)
         raise (Error ("Cannot pop an empty stack", line));
-      let new_sp = sub sp (Val 1L) in
+      let new_sp = sub sp v in
       Hashtbl.replace s.reg_table SP new_sp;
-      let v = read_memory s.memory (int_of_value new_sp) line in
-      store_at s dest v line
     | _ -> assert false
   )
   | Call -> (
