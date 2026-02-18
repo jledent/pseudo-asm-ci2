@@ -59,7 +59,7 @@ let display_registers doc registers =
     cell2##.textContent := Js.some (Js.string (string_of_value reg_value));
     Dom.appendChild row1 cell1;
     Dom.appendChild row2 cell2
-  ) [R0; R1; R2; R3; R4; R5; R6; R7; PC; SP; BP];
+  ) [R0; R1; R2; R3; R4; R5; R6; R7; PC; SP];
   Dom.appendChild table row1;
   Dom.appendChild table row2;
   Dom.appendChild registers table
@@ -79,13 +79,13 @@ let display_loaded_program doc loaded_program =
 
 let display_stack doc stack =
   stack##.innerHTML := Js.string "";
-  let stack_block = BlockMap.find 0 !state.memory in
+  let stack_block = BlockMap.find 1 !state.memory in
   let sp = int_of_value (Hashtbl.find !state.reg_table SP) in
   let bp = int_of_value (Hashtbl.find !state.reg_table BP) in
-  for i = 0 to sp - 1 do
+  for i = 1 to sp - 1 do
     let element = Html.createDiv doc in
     element##.className := Js.string "w-full h-6 text-white font-bold flex items-center justify-center my-0.5 rounded flex-shrink-0";
-    element##.textContent := Js.some (Js.string (string_of_value stack_block.data.(i)));
+    element##.textContent := Js.some (Js.string (string_of_value stack_block.data.(i - 1)));
     if i = bp
     then element##.classList##add (Js.string "bg-orange-500")
     else element##.classList##add (Js.string "bg-blue-600");
@@ -114,7 +114,7 @@ let display_heap doc heap =
   Dom.appendChild hrow h2;
   Dom.appendChild table hrow;
   BlockMap.iter (fun addr block ->
-    if addr = 0 then ()
+    if addr = 1 then ()
     else
       for i = 0 to block.size - 1 do
         let row = Html.createTr doc in

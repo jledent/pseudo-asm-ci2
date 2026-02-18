@@ -78,20 +78,20 @@ let initialize (prog : Asm.prog) =
   in
   let reg_table = Hashtbl.create 11 in
   List.iter (fun r -> Hashtbl.add reg_table r (Val 0L))
-    [ R0; R1; R2; R3; R4; R5; R6; R7; PC; SP ];
-  Hashtbl.add reg_table BP (Val (-1L));
+    [ R0; R1; R2; R3; R4; R5; R6; R7; PC; BP ];
+  Hashtbl.add reg_table SP (Val 1L);
   let stack = Array.make stack_size (Val 0L) in
-  let block = { start_address = 0; size = stack_size; data = stack } in
-  let memory = BlockMap.singleton 0 block in
+  let block = { start_address = 1; size = stack_size; data = stack } in
+  let memory = BlockMap.singleton 1 block in
   let bp_stack = Stack.create () in
   { instr_map; reg_table; memory; output=""; jmp_flag=false; bp_stack}
 
 let reset (s : state) =
   Hashtbl.iter (fun r _ -> Hashtbl.replace s.reg_table r (Val 0L)) s.reg_table;
-  Hashtbl.replace s.reg_table BP (Val (-1L));
+  Hashtbl.add s.reg_table SP (Val 1L);
   let stack = Array.make stack_size (Val 0L) in
-  let block = { start_address = 0; size = stack_size; data = stack } in
-  s.memory <- BlockMap.singleton 0 block;
+  let block = { start_address = 1; size = stack_size; data = stack } in
+  s.memory <- BlockMap.singleton 1 block;
   s.output <- "";
   s.jmp_flag <- false;
   Stack.clear s.bp_stack
@@ -137,14 +137,14 @@ let search_for_free_block memory size line =
     else
       search (start_addr + block.size) rest
   in
-  search 0 (BlockMap.bindings memory)
+  search 1 (BlockMap.bindings memory)
 
 let allocate_new_block (s : state) (size : int) line =
   let rec try_random_address n =
     if n = 0 then
       raise Not_found
     else
-    let start_addr = Random.int (1 lsl 30 - 1) in
+    let start_addr = 1 + Random.int ((1 lsl 30) - 2) in
     if can_allocate_block s.memory start_addr size then
       start_addr
     else
