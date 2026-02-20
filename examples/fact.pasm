@@ -1,14 +1,14 @@
   0: push 0
   1: call 100
-  2: sub SP, SP, 1
+  2: pop
   3: println ("0! = " + R0)
   4: push 5
   5: call 100
-  6: sub SP, SP, 1
+  6: pop
   7: println ("5! = " + R0)
   8: push 10
   9: call 100
- 10: sub SP, SP, 1
+ 10: pop
  11: println ("10! = " + R0)
  12: halt
 100: push 1
@@ -18,5 +18,5 @@
 104: add [BP+2], [BP+2], 1
 105: jump 102
 106: move R0, [BP+1]
-107: sub SP, SP, 2
+107: pop 2
 108: ret

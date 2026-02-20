@@ -55,7 +55,12 @@ let string_of_opcode = function
   | Print -> "print" | Println -> "println" | Malloc -> "malloc" | Halt -> "halt"
 
 let string_of_ins (l, (opc, ops)) = match opc with
-  | Print | Println -> Printf.sprintf "%d: %s (%s)" l (string_of_opcode opc) (String.concat " + " (List.map string_of_operand ops))
+  | Print | Println ->
+    begin
+      match ops with
+      | [op] -> Printf.sprintf "%d: %s %s" l (string_of_opcode opc) (string_of_operand op)
+      | _ -> Printf.sprintf "%d: %s (%s)" l (string_of_opcode opc) (String.concat " + " (List.map string_of_operand ops))
+    end
   | _ -> Printf.sprintf "%d: %s %s" l (string_of_opcode opc) (String.concat ", " (List.map string_of_operand ops))
 
 let string_of_prog p =

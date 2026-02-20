@@ -19,7 +19,7 @@
  17: push 7
  18: push [BP+5]
  19: call 100        // Appel ajouter(l, 7)
- 20: sub SP, SP, 2
+ 20: pop 2
  21: halt
 
 // Fonction ajouter (Liste this, int x)
@@ -32,7 +32,7 @@
 106: push [BP-2]  // push x
 107: push [R0]    // push this.tete
 108: call 200     // ajouter(this.tete, x)
-109: sub SP, SP, 2
+109: pop 2
 110: ret
 
 // Fonction ajouter (Cellule this, int x)
@@ -45,5 +45,5 @@
 206: malloc R1, 2
 207: move [R1], [BP-2]       // R1 = new Cellule(x, null)
 208: move [R0+1], R1         // tmp.next = R1
-209: sub SP, SP, 1
+209: pop
 210: ret

@@ -326,7 +326,10 @@ let rec eval_instr (s : state) (line : int) (op, args) =
     eval_instr s line (Jump, args)
   )
   | Ret -> (
-    eval_instr s line (Pop, [ Reg PC ]);
+    eval_instr s line (Pop, []);
+    let new_sp = Hashtbl.find s.reg_table SP in
+    let new_pc = read_memory s.memory (int_of_value new_sp) line in
+    Hashtbl.replace s.reg_table PC new_pc;
     let bp = Stack.pop s.bp_stack in
     Hashtbl.replace s.reg_table BP bp
   )

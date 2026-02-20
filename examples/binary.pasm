@@ -7,9 +7,9 @@
 6: add R1, R1, 1
 7: jump 2
 8: jump_eq R1, 0, 13
-9: pop R2
-10: print(R2)
+9: print [SP-1]
+10: pop
 11: sub R1, R1, 1
 12: jump 8
-13: println()
+13: println ()
 14: halt

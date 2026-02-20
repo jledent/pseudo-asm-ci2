@@ -10,10 +10,10 @@
   8: push [BP+1]   // tab
   9: push 4        // elt
  10: call 100
- 11: sub SP, SP, 3
+ 11: pop 3
  12: jump_eq R0, 0, 14
  13: println ("Trouvé !")
- 14: sub SP, SP, 1
+ 14: pop
  15: halt
  
 // Fonction find(int elt, int[] tab, int tab.length)
@@ -28,5 +28,5 @@
 108: add [BP+1], [BP+1], 1
 109: jump 102
 110: move R0, [BP+2]
-111: sub SP, SP, 2
+111: pop 2
 112: ret

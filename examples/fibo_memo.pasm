@@ -2,7 +2,7 @@
 0: push 30      // Variable n dans [BP+1]
 1: push [BP+1]  // Préparation de l'appel fibo(n)
 2: call 100     // Appel fibo(n)
-3: pop R7       // Nettoyage de la pile après appel
+3: pop          // Nettoyage de la pile après appel
 4: println ("Fibo (" + [BP+1] + ") = " + R0)
 5: halt
 
@@ -12,7 +12,7 @@
 102: push R0            // Préparation de l'appel fibo(n, tab)
 103: push [BP-1]        //
 104: call 200           // Appel fibo(n, tab)
-105: sub SP, SP, 2      // Nettoyage de la pile après appel
+105: pop 2              // Nettoyage de la pile après appel
 106: ret                // Le résultat est déjà dans R0
 
 // Fonction fibo(n, tab)
@@ -29,17 +29,17 @@
 210: push [BP-2]
 211: push R0
 212: call 200                 // Appel fibo(n-1, tab)
-213: sub SP, SP, 2
-214: move [BP+1], R0   // res = fibo(n-1)
+213: pop 2
+214: move [BP+1], R0          // res = fibo(n-1)
 215: sub R0, [BP-1], 2        // R0 = n-2
 216: push [BP-2]
 217: push R0
 218: call 200                 // Appel fibo(n-2, tab)
-219: sub SP, SP, 2
+219: pop 2
 220: add [BP+1], [BP+1], R0   // res = fibo(n-1) + fibo(n-2)
 221: move R2, [BP-2]
 222: move R1, [BP-1]
 223: move [R2+R1], [BP+1]     // Écrit la valeur de fibo(n) dans tab
 224: move R0, [BP+1]          // Valeur de retour dans R0
-225: pop R7                   // pop la variable locale res
+225: pop                      // pop la variable locale res
 226: ret
