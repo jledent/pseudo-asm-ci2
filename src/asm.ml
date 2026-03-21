@@ -43,7 +43,7 @@ let string_of_operand = function
     then "[" ^ string_of_reg r ^ "-" ^ Int64.to_string (Int64.neg i) ^ "]"
     else "[" ^ string_of_reg r ^ "+" ^ Int64.to_string i ^ "]"
   | IndReg (r1, r2) -> "[" ^ string_of_reg r1 ^ " + " ^ string_of_reg r2 ^ "]"
-  | Str s -> "\"" ^ s ^ "\""
+  | Str s -> "\"" ^ String.escaped s ^ "\""
 
 let string_of_opcode = function
   | Move -> "move"

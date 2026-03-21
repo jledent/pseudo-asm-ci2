@@ -9,7 +9,8 @@ let digit = ['0'-'9']
 let letter = ['a'-'z' 'A'-'Z']
 let register = 'R' digit
 let number = digit+
-let string = '"' [^ '"']* '"'
+let escape = '\\' _
+let string = '"' ([^ '"' '\\'] | escape )* '"'
 let comment = "//" [^ '\n']*
 let spaces = [' ' '\t']
 
@@ -20,7 +21,9 @@ rule token = parse
     | number as n { match Int64.of_string_opt n with
                        | Some j -> INT64 j
                        | None -> raise (ParseError ("Invalid number: " ^ n)) }
-    | string as s { STRING (String.sub s 1 (String.length s - 2)) }
+    | string as s { try STRING (Scanf.unescaped (String.sub s 1 (String.length s - 2)))
+                    with Scanf.Scan_failure _ -> raise (ParseError ("Invalid escape sequence in string: " ^ s))
+                  }
     | register as r {
         let k = int_of_char r.[1] in
         if k < 0 || k > 7
